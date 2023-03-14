@@ -1,0 +1,8 @@
+{
+    "server": "127.0.0.1",
+    "username": "SA",
+    "password": "root1234",
+    "database": "gate",
+    "port_db": 1434,
+    "port_api": 3000
+}
