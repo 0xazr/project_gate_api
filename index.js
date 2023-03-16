@@ -10,11 +10,11 @@ const app = express();
 const Connection = require('tedious').Connection;
 const Request = require('tedious').Request;
 
-let connection = new Connection(config);
 app.use(express.json());
 
 app.get('/', MIDDLEWARE.validateParams, (req, res) => {
     try {
+        let connection = new Connection(config);
         connection.on('connect', function (err) {
             if (err) {
                 console.log(err);
@@ -64,11 +64,11 @@ app.get('/', MIDDLEWARE.validateParams, (req, res) => {
 });
 
 app.put('/masuk/:gate_id/:card_id', MIDDLEWARE.checkParams, (req, res) => {
-    const gateId = req.params.gate_id;
-    const cardId = req.params.card_id;
-    // const studentId = req.params.student_id;
-
     try {
+        let connection = new Connection(config);
+        const gateId = req.params.gate_id;
+        const cardId = req.params.card_id;
+
         connection.on('connect', function (err) {
             if (err) {
                 console.log(err);
@@ -78,7 +78,6 @@ app.put('/masuk/:gate_id/:card_id', MIDDLEWARE.checkParams, (req, res) => {
             }
 
             let query = APP.updateQuery(gateId, cardId);
-            console.log(query);
 
             let request = new Request(
                 Util.format(query),
@@ -90,6 +89,7 @@ app.put('/masuk/:gate_id/:card_id', MIDDLEWARE.checkParams, (req, res) => {
                         });
                     }
                     console.log(rowCount + ' row(s) inserted');
+                    connection.close();
                 });
 
             request.on('doneProc', function () {
@@ -97,12 +97,13 @@ app.put('/masuk/:gate_id/:card_id', MIDDLEWARE.checkParams, (req, res) => {
             })
 
             connection.execSql(request);
-            return res.status(200).send({
-                message: `Masuk gate in ${gateId} & ${cardId}`
-            });
         });
 
         connection.connect();
+
+        return res.status(200).send({
+            message: `Masuk gate in ${gateId} & ${cardId}`
+        });
     } catch (error) {
         return res.status(500).send({
             message: 'Internal server error'
@@ -111,10 +112,11 @@ app.put('/masuk/:gate_id/:card_id', MIDDLEWARE.checkParams, (req, res) => {
 });
 
 app.put('/keluar/:gate_id/:card_id', MIDDLEWARE.checkParams, (req, res) => {
-    const gateId = req.params.gate_id;
-    const cardId = req.params.card_id;
-
     try {
+        let connection = new Connection(config);
+        const gateId = req.params.gate_id;
+        const cardId = req.params.card_id;
+
         connection.on('connect', function (err) {
             if (err) {
                 console.log(err);
@@ -124,7 +126,6 @@ app.put('/keluar/:gate_id/:card_id', MIDDLEWARE.checkParams, (req, res) => {
             }
 
             let query = APP.exitQuery(gateId, cardId);
-            console.log(query);
 
             let request = new Request(
                 Util.format(query),
@@ -136,6 +137,7 @@ app.put('/keluar/:gate_id/:card_id', MIDDLEWARE.checkParams, (req, res) => {
                         });
                     }
                     console.log(rowCount + ' row(s) inserted');
+                    connection.close();
                 });
 
             request.on('doneProc', function () {
@@ -158,6 +160,7 @@ app.put('/keluar/:gate_id/:card_id', MIDDLEWARE.checkParams, (req, res) => {
 
 app.post('/insert_data', MIDDLEWARE.validateParams, (req, res) => {
     try {
+        let connection = new Connection(config);
         connection.on('connect', function (err) {
             if (err) {
                 console.log(err);
