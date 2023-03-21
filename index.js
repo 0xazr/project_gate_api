@@ -89,9 +89,12 @@ app.put('/masuk/:gate_id/:card_id', MIDDLEWARE.checkParams, (req, res) => {
                     });
                 }
                 console.log(rowCount + ' row(s) returned');
+
+                let is_aktif = APP.checkData(data);
+
                 return res.status(200).send({
                     message: `Masuk gate in ${gateId} & ${cardId}`,
-                    data: data
+                    is_aktif: is_aktif
                 });
             });
 

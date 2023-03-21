@@ -216,6 +216,18 @@ class App {
         return card;
     }
 
+    checkData(data) {
+        let kartu_akses = data[0];
+        let tipe_gate = data[1];
+
+        let message = '';
+        if (kartu_akses.is_aktif == 0) {
+            message = 'kartu akses tidak aktif'
+        }
+
+        return message;
+    }
+
     exitQuery(gateId, cardId) {
         let time = this.getTime();
         // id_register_gate: no limit
