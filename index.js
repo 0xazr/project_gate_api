@@ -77,34 +77,49 @@ app.put('/masuk/:gate_id/:card_id', MIDDLEWARE.checkParams, (req, res) => {
                 });
             }
 
-            let query = APP.updateQuery(gateId, cardId);
+            let query = APP.getCard(cardId);
+            query += APP.getGate(gateId);
 
-            let request = new Request(
-                Util.format(query),
-                function (err, rowCount, rows) {
-                    if (err) {
-                        console.log(err);
-                        return res.status(500).send({
-                            message: 'Error updating data into database'
-                        });
-                    }
-                    console.log(rowCount + ' row(s) inserted');
-                    connection.close();
+            let data = [];
+            let request = new Request(query, function (err, rowCount, rows) {
+                if (err) {
+                    console.log(err);
+                    return res.status(500).send({
+                        message: 'Error getting data from database'
+                    });
+                }
+                console.log(rowCount + ' row(s) returned');
+                return res.status(200).send({
+                    message: `Masuk gate in ${gateId} & ${cardId}`,
+                    data: data
                 });
+            });
 
-            request.on('doneProc', function () {
-                console.log("Querying is done...");
-            })
+            request.on('row', function (columns) {
+                let item = {};
+                columns.forEach(function (column) {
+                    if (column.value === null) {
+                        item[column.metadata.colName] = '';
+                    } else {
+                        item[column.metadata.colName] = column.value;
+                    }
+                });
+                data.push(item);
+            });
+
+            request.on('error', function (err) {
+                console.log(err);
+                return res.status(500).send({
+                    message: 'id_kartu_akses / id_tipe_gate is not valid'
+                });
+            });
 
             connection.execSql(request);
         });
 
         connection.connect();
-
-        return res.status(200).send({
-            message: `Masuk gate in ${gateId} & ${cardId}`
-        });
     } catch (error) {
+        console.log(error);
         return res.status(500).send({
             message: 'Internal server error'
         });

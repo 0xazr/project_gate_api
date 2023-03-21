@@ -206,6 +206,16 @@ class App {
         return query_register_gate;
     }
 
+    getGate(gateId) {
+        let gate = `SELECT * from ref.tipe_gate WHERE id_tipe_gate = ${gateId};`;
+        return gate;
+    }
+
+    getCard(cardId) {
+        let card = `SELECT * from dbo.kartu_akses WHERE id_kartu_akses = ${cardId};`;
+        return card;
+    }
+
     exitQuery(gateId, cardId) {
         let time = this.getTime();
         // id_register_gate: no limit
