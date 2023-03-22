@@ -90,10 +90,16 @@ app.put('/masuk/:gate_id/:card_id', MIDDLEWARE.checkParams, (req, res) => {
                 }
                 console.log(rowCount + ' row(s) returned');
 
+                if (rowCount == 1 || rowCount == 0) {
+                    return res.status(404).send({
+                        message: `id_kartu_akses / id_tipe_gate is not valid`
+                    });
+                }
+
                 let is_aktif = APP.checkData(data);
 
                 return res.status(200).send({
-                    message: `Masuk gate in ${gateId} & ${cardId}`,
+                    message: `Masuk gate ${gateId} dengan kartu akses ${cardId}`,
                     is_aktif: is_aktif
                 });
             });
@@ -110,10 +116,15 @@ app.put('/masuk/:gate_id/:card_id', MIDDLEWARE.checkParams, (req, res) => {
                 data.push(item);
             });
 
+            request.on('requestCompleted', function () {
+                connection.close();
+            });
+
             request.on('error', function (err) {
                 console.log(err);
+                connection.close();
                 return res.status(500).send({
-                    message: 'id_kartu_akses / id_tipe_gate is not valid'
+                    message: 'Internal server error'
                 });
             });
 

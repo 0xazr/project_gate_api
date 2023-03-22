@@ -221,8 +221,10 @@ class App {
         let tipe_gate = data[1];
 
         let message = '';
-        if (kartu_akses.is_aktif == 0) {
-            message = 'kartu akses tidak aktif'
+        if (kartu_akses.is_aktif == 0 || kartu_akses.is_aktif == NULL) {
+            message = 'kartu akses tidak aktif';
+        } else if (kartu_akses.is_aktif == 1) {
+            message = 'kartu akses aktif';
         }
 
         return message;
