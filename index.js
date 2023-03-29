@@ -23,8 +23,10 @@ app.get('/', MIDDLEWARE.validateParams, (req, res) => {
                 });
             }
 
+            let data = [];
             let request = new Request(
-                "select * from student",
+                // "SELECT * from ref.tipe_gate",
+                "SELECT * from dbo.kartu_akses",
                 function (err, rowCount, rows) {
                     if (err) {
                         console.log(err);
@@ -33,26 +35,39 @@ app.get('/', MIDDLEWARE.validateParams, (req, res) => {
                         });
                     }
                     console.log(rowCount + ' row(s) returned');
+
+                    return res.status(200).send({
+                        message: `Success get data from database`,
+                        data
+                    });
                 }
             );
 
-            let result = "";
             request.on('row', function (columns) {
+                let item = {};
                 columns.forEach(function (column) {
                     if (column.value === null) {
-                        console.log('NULL');
+                        item[column.metadata.colName] = '';
                     } else {
-                        result += column.value + " ";
+                        item[column.metadata.colName] = column.value;
                     }
                 });
-                console.log(result);
-                result = "";
+                data.push(item);
             });
-            connection.execSql(request);
 
-            res.status(200).send({
-                message: "Success get data"
+            request.on('requestCompleted', function () {
+                connection.close();
             });
+
+            request.on('error', function (err) {
+                console.log(err);
+                connection.close();
+                return res.status(500).send({
+                    message: 'Internal server error',
+                });
+            });
+
+            connection.execSql(request);
         });
 
         connection.connect();
@@ -79,6 +94,7 @@ app.put('/masuk/:gate_id/:card_id', MIDDLEWARE.checkParams, (req, res) => {
 
             let query = APP.getCard(cardId);
             query += APP.getGate(gateId);
+            console.log(query)
 
             let data = [];
             let request = new Request(query, function (err, rowCount, rows) {

@@ -212,7 +212,7 @@ class App {
     }
 
     getCard(cardId) {
-        let card = `SELECT * from dbo.kartu_akses WHERE id_kartu_akses = ${cardId};`;
+        let card = `SELECT * from dbo.kartu_akses WHERE id_kartu_akses = '${cardId}';`;
         return card;
     }
 
@@ -221,7 +221,7 @@ class App {
         let tipe_gate = data[1];
 
         let message = '';
-        if (kartu_akses.is_aktif == 0 || kartu_akses.is_aktif == NULL) {
+        if (kartu_akses.is_aktif == 0 || kartu_akses.is_aktif == null) {
             message = 'kartu akses tidak aktif';
         } else if (kartu_akses.is_aktif == 1) {
             message = 'kartu akses aktif';
