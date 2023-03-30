@@ -207,7 +207,7 @@ class App {
     }
 
     getGate(gateId) {
-        let gate = `SELECT * from ref.tipe_gate WHERE id_tipe_gate = ${gateId};`;
+        let gate = `SELECT * from dbo.register_gate WHERE id_register_gate = ${gateId};`;
         return gate;
     }
 
@@ -218,13 +218,13 @@ class App {
 
     checkData(data) {
         let kartu_akses = data[0];
-        let tipe_gate = data[1];
+        let register_gate = data[1];
 
         let message = '';
-        if (kartu_akses.is_aktif == 0 || kartu_akses.is_aktif == null) {
-            message = 'kartu akses tidak aktif';
-        } else if (kartu_akses.is_aktif == 1) {
-            message = 'kartu akses aktif';
+        if (kartu_akses.is_aktif == 1 && register_gate) {
+            message = '1';
+        } else {
+            message = '0';
         }
 
         return message;

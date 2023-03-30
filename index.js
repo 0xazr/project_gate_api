@@ -1,16 +1,16 @@
+const express = require('express');
 const SETUP = require("./setup.json");
 const MIDDLEWARE = require("./middleware.js");
-const APP = require("./app.js");
+const APP = require("./query.js");
 const { config } = require("./db.js");
-
-const express = require('express');
-let Util = require("util");
-const app = express();
-
+const bodyParser = require('body-parser');
 const Connection = require('tedious').Connection;
 const Request = require('tedious').Request;
 
+const app = express();
+
 app.use(express.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 app.get('/', MIDDLEWARE.validateParams, (req, res) => {
     try {
@@ -25,8 +25,13 @@ app.get('/', MIDDLEWARE.validateParams, (req, res) => {
 
             let data = [];
             let request = new Request(
+                // "SELECT * from dbo.register_gate",
                 // "SELECT * from ref.tipe_gate",
-                "SELECT * from dbo.kartu_akses",
+                // "SELECT * from dbo.kartu_akses",
+                `SELECT TABLE_NAME
+                FROM INFORMATION_SCHEMA.TABLES
+                WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_CATALOG='GATE_DEV';
+                `,
                 function (err, rowCount, rows) {
                     if (err) {
                         console.log(err);
@@ -78,11 +83,12 @@ app.get('/', MIDDLEWARE.validateParams, (req, res) => {
     }
 });
 
-app.get('/masuk/:gate_id/:card_id', MIDDLEWARE.checkParams, (req, res) => {
+app.get(['/masuk', '/keluar'], MIDDLEWARE.checkParams, (req, res) => {
+    res.set('Content-Type', 'text/plain');
     try {
         let connection = new Connection(config);
-        const gateId = req.params.gate_id;
-        const cardId = req.params.card_id;
+        const gateId = req.body.gate_id;
+        const cardId = req.body.card_id;
 
         connection.on('connect', function (err) {
             if (err) {
@@ -100,24 +106,17 @@ app.get('/masuk/:gate_id/:card_id', MIDDLEWARE.checkParams, (req, res) => {
             let request = new Request(query, function (err, rowCount, rows) {
                 if (err) {
                     console.log(err);
-                    return res.status(500).send({
-                        message: 'Error getting data from database'
-                    });
+                    return res.status(500).send('Error getting data from database');
                 }
                 console.log(rowCount + ' row(s) returned');
 
                 if (rowCount == 1 || rowCount == 0) {
-                    return res.status(404).send({
-                        message: `id_kartu_akses / id_tipe_gate is not valid`
-                    });
+                    return res.status(200).send('0');
                 }
 
                 let is_aktif = APP.checkData(data);
 
-                return res.status(200).send({
-                    message: `Masuk gate ${gateId} dengan kartu akses ${cardId}`,
-                    is_aktif: is_aktif
-                });
+                return res.status(200).send(is_aktif);
             });
 
             request.on('row', function (columns) {
@@ -139,9 +138,7 @@ app.get('/masuk/:gate_id/:card_id', MIDDLEWARE.checkParams, (req, res) => {
             request.on('error', function (err) {
                 console.log(err);
                 connection.close();
-                return res.status(500).send({
-                    message: 'Internal server error'
-                });
+                return res.status(500).send('Error connecting to database');
             });
 
             connection.execSql(request);
@@ -150,87 +147,7 @@ app.get('/masuk/:gate_id/:card_id', MIDDLEWARE.checkParams, (req, res) => {
         connection.connect();
     } catch (error) {
         console.log(error);
-        return res.status(500).send({
-            message: 'Internal server error'
-        });
-    }
-});
-
-app.get('/keluar/:gate_id/:card_id', MIDDLEWARE.checkParams, (req, res) => {
-    try {
-        let connection = new Connection(config);
-        const gateId = req.params.gate_id;
-        const cardId = req.params.card_id;
-
-        connection.on('connect', function (err) {
-            if (err) {
-                console.log(err);
-                return res.status(500).send({
-                    message: 'Error connecting to database'
-                });
-            }
-
-            let query = APP.getCard(cardId);
-            query += APP.getGate(gateId);
-            console.log(query)
-
-            let data = [];
-            let request = new Request(query, function (err, rowCount, rows) {
-                if (err) {
-                    console.log(err);
-                    return res.status(500).send({
-                        message: 'Error getting data from database'
-                    });
-                }
-                console.log(rowCount + ' row(s) returned');
-
-                if (rowCount == 1 || rowCount == 0) {
-                    return res.status(404).send({
-                        message: `id_kartu_akses / id_tipe_gate is not valid`
-                    });
-                }
-
-                let is_aktif = APP.checkData(data);
-
-                return res.status(200).send({
-                    message: `Keluar gate ${gateId} dengan kartu akses ${cardId}`,
-                    is_aktif: is_aktif
-                });
-            });
-
-            request.on('row', function (columns) {
-                let item = {};
-                columns.forEach(function (column) {
-                    if (column.value === null) {
-                        item[column.metadata.colName] = '';
-                    } else {
-                        item[column.metadata.colName] = column.value;
-                    }
-                });
-                data.push(item);
-            });
-
-            request.on('requestCompleted', function () {
-                connection.close();
-            });
-
-            request.on('error', function (err) {
-                console.log(err);
-                connection.close();
-                return res.status(500).send({
-                    message: 'Internal server error'
-                });
-            });
-
-            connection.execSql(request);
-        });
-
-        connection.connect();
-    } catch (error) {
-        console.log(error);
-        return res.status(500).send({
-            message: 'Internal server error'
-        });
+        return res.status(500).send('Internal server error');
     }
 });
 
