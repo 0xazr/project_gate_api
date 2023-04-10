@@ -4,7 +4,7 @@ const moment = require("moment");
 const uuid = require("uuid");
 const fs = require("fs");
 
-class App {
+class Query {
     datetime_past = faker.date.past();
     datetime_future = faker.date.future();
 
@@ -167,43 +167,36 @@ class App {
     }
 
     getTime() {
-        const now = new Date();
-        const year = now.getFullYear().toString().padStart(4, "0");
-        const month = (now.getMonth() + 1).toString().padStart(2, "0");
-        const day = now.getDate().toString().padStart(2, "0");
-        const hours = now.getHours().toString().padStart(2, "0");
-        const minutes = now.getMinutes().toString().padStart(2, "0");
-        const seconds = now.getSeconds().toString().padStart(2, "0");
+        const date = new Date();
+        const year = date.getUTCFullYear();
+        const month = (`0${date.getUTCMonth() + 1}`).slice(-2);
+        const day = (`0${date.getUTCDate()}`).slice(-2);
+        const hours = (`0${date.getUTCHours()}`).slice(-2);
+        const minutes = (`0${date.getUTCMinutes()}`).slice(-2);
+        const seconds = (`0${date.getUTCSeconds()}`).slice(-2);
+        const milliseconds = (`00${date.getUTCMilliseconds()}`).slice(-3);
 
-        const datetime = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-        return datetime;
+        const formattedDate = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${milliseconds}Z`;
+
+        return formattedDate;
     }
 
-    updateQuery(gateId, cardId) {
+    entryQuery(gateId, cardId, is_valid) {
         let time = this.getTime();
-        // id_register_gate: no limit
-        // id_tipe_gate: 9
-        // id_kartu_akses: no limit
-        let query_register_gate = `INSERT INTO dbo.register_gate (
-            id_register_gate,
-            id_tipe_gate,
+        let bool = is_valid == '0' ? false : true;
+
+        let entry = `INSERT INTO dbo.log_masuk (
             id_kartu_akses,
-            tgl_unggah,
-            is_updated,
-            created_at,
-            updated_at,
-            updater) VALUES (
-                (SELECT COUNT(*) FROM dbo.register_gate) + 1,
+            id_register_gate,
+            date_time,
+            is_valid) VALUES (
+                '${cardId}',
                 ${gateId},
-                ${cardId},
                 '${time}',
-                0,
-                '${time}',
-                '${time}',
-                (newid())
+                '${bool}'
             );`;
 
-        return query_register_gate;
+        return entry;
     }
 
     getGate(gateId) {
@@ -230,32 +223,23 @@ class App {
         return message;
     }
 
-    exitQuery(gateId, cardId) {
+    exitQuery(gateId, cardId, is_valid) {
         let time = this.getTime();
-        // id_register_gate: no limit
-        // id_tipe_gate: 9
-        // id_kartu_akses: no limit
-        let query_register_gate = `INSERT INTO dbo.register_gate (
-            id_register_gate,
-            id_tipe_gate,
+        let bool = is_valid == '0' ? false : true;
+
+        let exit = `INSERT INTO dbo.log_keluar (
             id_kartu_akses,
-            tgl_unggah,
-            is_updated,
-            created_at,
-            updated_at,
-            updater) VALUES (
-                (SELECT COUNT(*) FROM dbo.register_gate) + 1,
+            id_register_gate,
+            date_time,
+            is_valid) VALUES (
+                '${cardId}',
                 ${gateId},
-                ${cardId},
                 '${time}',
-                1,
-                '${time}',
-                '${time}',
-                (newid())
+                '${bool}'
             );`;
 
-        return query_register_gate;
+        return exit;
     }
 }
 
-module.exports = new App();
+module.exports = new Query();
