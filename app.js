@@ -158,6 +158,12 @@ function handleEntry(req, res) {
 
                 connection.execSql(insertRequest);
 
+                insertRequest.on('error', function (err) {
+                    console.log(err);
+                    connection.close();
+                    return res.status(500).send('Error inserting to database');
+                });
+
                 insertRequest.on('requestCompleted', function () {
                     connection.close();
                 });
@@ -238,6 +244,12 @@ function handleExit(req, res) {
                 });
 
                 connection.execSql(insertRequest);
+
+                insertRequest.on('error', function (err) {
+                    console.log(err);
+                    connection.close();
+                    return res.status(500).send('Error inserting to database');
+                });
 
                 insertRequest.on('requestCompleted', function () {
                     connection.close();
