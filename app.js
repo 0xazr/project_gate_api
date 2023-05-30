@@ -267,6 +267,7 @@ function handleExit(req, res) {
                 });
                 data.push(item);
             });
+            // console.log(data);
 
 
             request.on('error', function (err) {
@@ -285,6 +286,49 @@ function handleExit(req, res) {
     }
 };
 
+function insertCardId(req, res) {
+    res.set('Content-Type', 'text/plain');
+    try {
+        let connection = new Connection(config);
+        const cardId = req.body.card_id;
+
+        connection.on('connect', function (err) {
+            if (err) {
+                console.log(err);
+                return res.status(500).send({
+                    message: 'Error connecting to database'
+                });
+            }
+
+            let query = QUERY.insertCardAccess(cardId);
+
+            let request = new Request(query, function (err, rowCount, rows) {
+                if (err) {
+                    console.log(err);
+                    return res.status(500).send({
+                        message: 'Error inserting data into database'
+                    });
+                }
+                console.log(rowCount + ' row(s) inserted');
+                connection.close();
+            });
+
+            request.on('done', function (rowCount, more) {
+                console.log("Insert is done...");
+            });
+
+            connection.execSql(request);
+            return res.status(200).send('1');
+        });
+        connection.connect();
+    } catch (error) {
+        console.log(error);
+        return res.status(500).send({
+            message: 'Internal server error'
+        });
+    }
+};
+
 function insertData(req, res) {
     try {
         let connection = new Connection(config);
@@ -296,7 +340,8 @@ function insertData(req, res) {
                 });
             }
 
-            let query = QUERY.insertQuery();
+            // let query = QUERY.insertQuery();
+            let query = QUERY.insertRegisterGate(3);
 
             let request = new Request(query, function (err, rowCount, rows) {
                 if (err) {
@@ -340,8 +385,9 @@ function getData(req, res) {
 
             let data = [];
             let request = new Request(
-                "SELECT * from dbo.log_keluar",
-                // "SELECT * from ref.tipe_gate",
+                // "SELECT * from dbo.log_keluar",
+                // "SELECT * from dbo.log_masuk",
+                "SELECT * from dbo.register_gate",
                 // "SELECT * from dbo.kartu_akses",
                 // `SELECT TABLE_NAME
                 // FROM INFORMATION_SCHEMA.TABLES
@@ -401,4 +447,4 @@ function getData(req, res) {
     }
 };
 
-module.exports = { handle, insertData, getData, handleEntry, handleExit };
+module.exports = { handle, insertData, getData, handleEntry, handleExit, insertCardId };

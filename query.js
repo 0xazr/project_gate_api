@@ -240,6 +240,62 @@ class Query {
 
         return exit;
     }
+
+    insertCardAccess(cardId) {
+        let time = this.getTime();
+
+        let card_access = `INSERT INTO dbo.kartu_akses (
+            id_kartu_akses,
+            id_pengguna,
+            tgl_daftar,
+            tgl_aktif,
+            tgl_kadaluarsa,
+            is_aktif,
+            created_at,
+            updated_at,
+            deleted_at,
+            updater) VALUES (
+                '${cardId}',
+                (SELECT TOP 1 id_pengguna FROM dbo.pengguna ORDER BY NEWID()),
+                '${time}',
+                '${time}',
+                '${time}',
+                '1',
+                '${time}',
+                '${time}',
+                '${time}',
+                (newid())
+            );`;
+
+        return card_access;
+    }
+
+    insertRegisterGate(register_gate_id) {
+        let time = this.getTime();
+
+        let register_gate = `INSERT INTO dbo.register_gate (
+            id_register_gate,
+            id_tipe_gate,
+            id_kartu_akses,
+            tgl_unggah,
+            is_updated,
+            created_at,
+            updated_at,
+            deleted_at,
+            updater) VALUES (
+                ${register_gate_id},
+                1,
+                '1212121212',
+                "",
+                1,
+                '${time}',
+                '${time}',
+                "",
+                (newid())
+            );`;
+
+        return register_gate;
+    }
 }
 
 module.exports = new Query();
