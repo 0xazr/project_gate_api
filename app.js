@@ -12,7 +12,6 @@ function handle(req, res) {
 
         connection.on('connect', function (err) {
             if (err) {
-                console.log(err);
                 return res.status(500).send({
                     message: 'Error connecting to database'
                 });
@@ -20,15 +19,12 @@ function handle(req, res) {
 
             let query = QUERY.getCard(cardId);
             query += QUERY.getGate(gateId);
-            console.log(query);
 
             let data = [];
             let request = new Request(query, function (err, rowCount, rows) {
                 if (err) {
-                    console.log(err);
                     return res.status(500).send('Error getting data from database');
                 }
-                console.log(rowCount + ' row(s) returned');
 
                 if (rowCount == 1 || rowCount == 0) {
                     return res.status(200).send('0');
@@ -40,10 +36,8 @@ function handle(req, res) {
                     let entry = QUERY.entryQuery(gateId, cardId, is_aktif);
                     let request = new Request(entry, function (err, rowCount, rows) {
                         if (err) {
-                            console.log(err);
                             return res.status(500).send('Error inserting data into database');
                         }
-                        console.log(rowCount + ' row(s) inserted');
                         // connection.close();
                         if (rowCount == 0) {
                             return res.status(200).send('0');
@@ -59,10 +53,8 @@ function handle(req, res) {
                     let exit = QUERY.exitQuery(gateId, cardId, is_aktif);
                     let request = new Request(exit, function (err, rowCount, rows) {
                         if (err) {
-                            console.log(err);
                             return res.status(500).send('Error inserting data into database');
                         }
-                        console.log(rowCount + ' row(s) inserted');
                         // connection.close();
                         if (rowCount == 0) {
                             return res.status(200).send('0');
@@ -75,8 +67,6 @@ function handle(req, res) {
                         connection.close();
                     });
                 }
-
-                // return res.status(200).send(is_aktif);
             });
 
             request.on('row', function (columns) {
@@ -96,7 +86,6 @@ function handle(req, res) {
             });
 
             request.on('error', function (err) {
-                console.log(err);
                 connection.close();
                 return res.status(500).send('Error connecting to database');
             });
@@ -106,7 +95,6 @@ function handle(req, res) {
 
         connection.connect();
     } catch (error) {
-        console.log(error);
         return res.status(500).send('Internal server error');
     }
 };
@@ -117,10 +105,9 @@ function handleEntry(req, res) {
         let connection = new Connection(config);
         const gateId = req.body.gate_id;
         const cardId = req.body.card_id;
-
+        
         connection.on('connect', function (err) {
             if (err) {
-                console.log(err);
                 return res.status(500).send({
                     message: 'Error connecting to database'
                 });
@@ -128,38 +115,30 @@ function handleEntry(req, res) {
 
             let query = QUERY.getCard(cardId);
             query += QUERY.getGate(gateId);
-            console.log(query);
 
             let data = [];
             let request = new Request(query, function (err, rowCount, rows) {
                 if (err) {
-                    console.log(err);
                     return res.status(500).send('Error getting data from database');
                 }
-                console.log(rowCount + ' row(s) returned');
 
                 if (rowCount == 1 || rowCount == 0) {
                     return res.status(200).send('0');
                 }
 
                 let is_aktif = QUERY.checkData(data);
-                console.log('is_aktif: ', is_aktif);
                 let entry = QUERY.entryQuery(gateId, cardId, is_aktif);
-                console.log('entry: ', entry);
 
                 let insertRequest = new Request(entry, function (err, rowCount) {
                     if (err) {
-                        console.log(err);
                         return res.status(500).send('Error inserting data into database');
                     }
-                    console.log(rowCount + ' row(s) inserted');
                     return res.status(200).send('1');
                 });
 
                 connection.execSql(insertRequest);
 
                 insertRequest.on('error', function (err) {
-                    console.log(err);
                     connection.close();
                     return res.status(500).send('Error inserting to database');
                 });
@@ -183,7 +162,6 @@ function handleEntry(req, res) {
 
 
             request.on('error', function (err) {
-                console.log(err);
                 connection.close();
                 return res.status(500).send('Error connecting to database');
             });
@@ -193,7 +171,6 @@ function handleEntry(req, res) {
 
         connection.connect();
     } catch (error) {
-        console.log(error);
         return res.status(500).send('Internal server error');
     }
 };
@@ -207,7 +184,6 @@ function handleExit(req, res) {
 
         connection.on('connect', function (err) {
             if (err) {
-                console.log(err);
                 return res.status(500).send({
                     message: 'Error connecting to database'
                 });
@@ -215,38 +191,31 @@ function handleExit(req, res) {
 
             let query = QUERY.getCard(cardId);
             query += QUERY.getGate(gateId);
-            console.log(query);
 
             let data = [];
             let request = new Request(query, function (err, rowCount, rows) {
                 if (err) {
-                    console.log(err);
                     return res.status(500).send('Error getting data from database');
                 }
-                console.log(rowCount + ' row(s) returned');
 
                 if (rowCount == 1 || rowCount == 0) {
                     return res.status(200).send('0');
                 }
 
                 let is_aktif = QUERY.checkData(data);
-                console.log('is_aktif: ', is_aktif);
                 let entry = QUERY.exitQuery(gateId, cardId, is_aktif);
-                console.log('entry: ', entry);
-
+                
                 let insertRequest = new Request(entry, function (err, rowCount) {
                     if (err) {
-                        console.log(err);
                         return res.status(500).send('Error inserting data into database');
                     }
-                    console.log(rowCount + ' row(s) inserted');
+                    
                     return res.status(200).send('1');
                 });
 
                 connection.execSql(insertRequest);
 
                 insertRequest.on('error', function (err) {
-                    console.log(err);
                     connection.close();
                     return res.status(500).send('Error inserting to database');
                 });
@@ -267,11 +236,8 @@ function handleExit(req, res) {
                 });
                 data.push(item);
             });
-            // console.log(data);
-
 
             request.on('error', function (err) {
-                console.log(err);
                 connection.close();
                 return res.status(500).send('Error connecting to database');
             });
@@ -281,7 +247,6 @@ function handleExit(req, res) {
 
         connection.connect();
     } catch (error) {
-        console.log(error);
         return res.status(500).send('Internal server error');
     }
 };
@@ -294,7 +259,6 @@ function insertCardId(req, res) {
 
         connection.on('connect', function (err) {
             if (err) {
-                console.log(err);
                 return res.status(500).send({
                     message: 'Error connecting to database'
                 });
@@ -304,17 +268,11 @@ function insertCardId(req, res) {
 
             let request = new Request(query, function (err, rowCount, rows) {
                 if (err) {
-                    console.log(err);
                     return res.status(500).send({
                         message: 'Error inserting data into database'
                     });
                 }
-                console.log(rowCount + ' row(s) inserted');
                 connection.close();
-            });
-
-            request.on('done', function (rowCount, more) {
-                console.log("Insert is done...");
             });
 
             connection.execSql(request);
@@ -334,7 +292,6 @@ function insertData(req, res) {
         let connection = new Connection(config);
         connection.on('connect', function (err) {
             if (err) {
-                console.log(err);
                 return res.status(500).send({
                     message: 'Error connecting to database'
                 });
@@ -345,17 +302,11 @@ function insertData(req, res) {
 
             let request = new Request(query, function (err, rowCount, rows) {
                 if (err) {
-                    console.log(err);
                     return res.status(500).send({
                         message: 'Error inserting data into database'
                     });
                 }
-                console.log(rowCount + ' row(s) inserted');
                 connection.close();
-            });
-
-            request.on('done', function (rowCount, more) {
-                console.log("Insert is done...");
             });
 
             connection.execSql(request);
@@ -365,7 +316,6 @@ function insertData(req, res) {
         });
         connection.connect();
     } catch (error) {
-        console.log(error);
         return res.status(500).send({
             message: 'Internal server error'
         });
@@ -377,7 +327,6 @@ function getData(req, res) {
         let connection = new Connection(config);
         connection.on('connect', function (err) {
             if (err) {
-                console.log(err);
                 return res.status(500).send({
                     message: 'Error connecting to database'
                 });
@@ -387,8 +336,8 @@ function getData(req, res) {
             let request = new Request(
                 // "SELECT * from dbo.log_keluar",
                 // "SELECT * from dbo.log_masuk",
-                "SELECT * from dbo.register_gate",
-                // "SELECT * from dbo.kartu_akses",
+                // "SELECT * from dbo.register_gate",
+                "SELECT * from dbo.kartu_akses",
                 // `SELECT TABLE_NAME
                 // FROM INFORMATION_SCHEMA.TABLES
                 // WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_CATALOG='GATE_DEV';
@@ -398,12 +347,10 @@ function getData(req, res) {
                 // WHERE TABLE_NAME = 'log_keluar';`,
                 function (err, rowCount, rows) {
                     if (err) {
-                        console.log(err);
                         return res.status(500).send({
                             message: 'Error get data from database'
                         });
                     }
-                    console.log(rowCount + ' row(s) returned');
 
                     return res.status(200).send({
                         message: `Success get data from database`,

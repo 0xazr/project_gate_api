@@ -2,11 +2,13 @@ const express = require('express');
 const SETUP = require("./setup.json");
 const MIDDLEWARE = require("./middleware.js");
 const bodyParser = require('body-parser');
+const log = require('./log.js');
 const { handle, insertData, getData, handleEntry, handleExit, insertCardId } = require('./app.js');
 
 const app = express();
 
 app.use(express.json());
+app.use(log);
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.get('/', MIDDLEWARE.validateParams, getData);
@@ -20,5 +22,5 @@ app.post('/insert_data', MIDDLEWARE.validateParams, insertData);
 app.post('/insert_card', MIDDLEWARE.checkParams, insertCardId);
 
 app.listen(SETUP.port_api, () => {
-    console.log(`Server started on port ${SETUP.port_api}`);
+    console.log(`[${new Date().toISOString()}] - Server started on port ${SETUP.port_api}`);
 });
